@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
- <title>スポーツクラブ掲示板 | 小学生・中学生のクラブチーム募集 | ClubLink</title>
+ <title>スポーツクラブ掲示板 | クラブチーム募集 | ClubLink</title>
   
  <meta name="description" content="小学生・中学生向けスポーツクラブやクラブチームの募集掲示板。サッカー・野球・バスケ・陸上など地域のスポーツチームを検索できます。ClubLinkで自分に合うクラブを見つけよう。">
   
   <link rel="stylesheet" href="design.css">
   
   <meta name="google-site-verification" content="QSUNHB4k5gbhgY4tVjbleuQWU1WLdPswY-idBi8P3kc" />
-<link rel="canonical" href="https://sportsclub-bulletinboard0213.github.io/Athlink/">
+<link rel="canonical" href="https://sports-bbs.github.io/Club-Link/" />
 </head>
 
 <body>
@@ -19,7 +19,7 @@
   <div class="logo">ClubLink</div>
   <div class="logo-2">スポーツクラブ掲示板</div>
   <h1 class="title-h1">スポーツクラブ掲示板</h1>
-  <p class="title-h2">これは小・中学生のクラブ活動を募集する掲示板です</p>
+  <p class="title-h2">これは地域のクラブ活動を募集する掲示板です</p>
 </div>
 <div id="imageModal" class="modal" onclick="closeModal()">
   <span class="close">&times;</span>
@@ -40,14 +40,28 @@
 <button onclick="filterSport(event,'バレーボール')">バレーボール</button>
 <button onclick="filterSport(event,'その他')">その他</button>
 </div>
+
+<div class="fee-filter">
+  <input type="number" id="minFee" placeholder="最低料金">
+  <input type="number" id="maxFee" placeholder="最高料金">
+  <button onclick="filterByFee()">料金で検索</button>
+</div>
+
  <!-- 地域検索フィルター -->
   <div class="keyword-menu">
 
-<input type="text" id="keyword" placeholder="例：東京  小学生 社会人 無料 などキーワードで検索">
-
+<input type="text" id="regionFilter" placeholder="地域で検索" oninput="filterRegion()">
 <button onclick="searchKeyword()">検索</button>
 
 </div>
+
+<div>
+<input type="text" id="keyword" placeholder="キーワード検索">
+<button onclick="searchKeyword()">検索</button>
+</div>
+
+
+
 
 <label>並び替え:</label>
 
@@ -64,17 +78,30 @@
 
 
 
+<div><button onclick="resetFilters()">リセット</button></div>
 
+
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+</div>  
+ 
+  
 
 
 
 <div id="posts"></div>
+<div class="pagination" id="pagination"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+  let currentPage = 0;
+const pageSize = 6;
+
 
 const { createClient } = supabase;
+
 
 
 const client = createClient(
@@ -82,7 +109,9 @@ const client = createClient(
   "sb_publishable_6CpkprXrX-rd7F1Yx6O21g_krBbL5-T"
 );
 
+
 // 拡大表示用の関数（関数の外に出しておきます）
+
 function openModal(src) {
   document.getElementById("imageModal").style.display = "flex";
   document.getElementById("expandedImg").src = src;
@@ -91,82 +120,160 @@ function openModal(src) {
 function closeModal() {
   document.getElementById("imageModal").style.display = "none";
 }
+// ページ操作（←絶対外に置く）
+function goToPage(page){
+  currentPage = page;
+  loadPosts();
+}
 
-async function loadPosts(sport = "", region = "", keyword = "") {
+function nextPage(){
+  currentPage++;
+  loadPosts();
+}
+
+function prevPage(){
+  if(currentPage > 0){
+    currentPage--;
+    loadPosts();
+  }
+}
+
+
+// ページネーション描画
+function renderPagination(totalCount){
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const pagination = document.getElementById("pagination");
+
+  let html = "";
+
+  // 前へ
+  html += `<button onclick="prevPage()" ${currentPage === 0 ? "disabled" : ""}>前へ</button>`;
+
+  // ページ番号
+  for(let i = 0; i < totalPages; i++){
+    html += `<button onclick="goToPage(${i})" class="${i === currentPage ? "active" : ""}">${i+1}</button>`;
+  }
+
+  // 次へ
+  html += `<button onclick="nextPage()" ${currentPage >= totalPages - 1 ? "disabled" : ""}>次へ</button>`;
+ 
+  let countQuery = client
+  .from("teams")
+  .select("*", { count: "exact", head: true })
+  .eq("approved", true);
+
+  pagination.innerHTML = html;
+}
+
+
+async function loadPosts(sport = "", region = "", keyword = "", minFee = "", maxFee = "") {
+
+  document.getElementById("loading").style.display = "block";
+
+  // 🔥 データ取得用
   let query = client
     .from("teams")
     .select("*")
-    .eq("approved", true)
-    if(currentSort == "new"){
-query = query.order("id", { ascending:false });
-}
+    .eq("approved", true);
 
-if(currentSort == "old"){
-query = query.order("id", { ascending:true });
-}
+  // 🔥 件数取得用（別で作る）
+  let countQuery = client
+    .from("teams")
+    .select("*", { count: "exact", head: true })
+    .eq("approved", true);
 
-if(currentSort == "members_desc"){
-query = query.order("members", { ascending:false });
-}
 
-if(currentSort == "members_asc"){
-query = query.order("members", { ascending:true });
-}
+  // =====================
+  // フィルター（両方に適用）
+  // =====================
 
-  if (sport != "") {
+  if (sport) {
     query = query.eq("sport", sport);
+    countQuery = countQuery.eq("sport", sport);
   }
 
-  if (region != "") {
+  if (region) {
     query = query.ilike("location", `%${region.trim()}%`);
+    countQuery = countQuery.ilike("location", `%${region.trim()}%`);
   }
-  if(keyword != ""){
 
-const words = keyword.split(" ");
+  if(keyword){
+    const words = keyword.split(" ");
 
-words.forEach(word => {
+    words.forEach(word => {
+      if(word == "無料"){
+        query = query.eq("fee", 0);
+        countQuery = countQuery.eq("fee", 0);
+      }
+      else{
+        query = query.or(`team_name.ilike.%${word}%,location.ilike.%${word}%`);
+        countQuery = countQuery.or(`team_name.ilike.%${word}%,location.ilike.%${word}%`);
+      }
+    });
+  }
 
-if(word == "無料"){
-query = query.eq("fee",0);
-}
+  if(minFee !== ""){
+    query = query.gte("fee", minFee);
+    countQuery = countQuery.gte("fee", minFee);
+  }
 
-else if(!isNaN(word)){
-query = query.eq("fee",word);
-}
+  if(maxFee !== ""){
+    query = query.lte("fee", maxFee);
+    countQuery = countQuery.lte("fee", maxFee);
+  }
 
-else{
 
-query = query.or(
-`team_name.ilike.%${word}%,
-location.ilike.%${word}%,
-sport.ilike.%${word}%,
-target.ilike.%${word}%`
-);
+  // =====================
+  // 並び替え（queryだけ）
+  // =====================
 
-}
+  if(currentSort == "new"){
+    query = query.order("id", { ascending:false });
+  }
+  if(currentSort == "old"){
+    query = query.order("id", { ascending:true });
+  }
+  if(currentSort == "members_desc"){
+    query = query.order("members", { ascending:false });
+  }
+  if(currentSort == "members_asc"){
+    query = query.order("members", { ascending:true });
+  }
 
-});
 
-}
+  // =====================
+  // ページング（queryだけ）
+  // =====================
 
- if(currentSort == "fee_asc"){
-query = query.order("fee",{ascending:true});
-}
+  query = query.range(currentPage * pageSize, (currentPage + 1) * pageSize - 1);
 
-if(currentSort == "fee_desc"){
-query = query.order("fee",{ascending:false});
-}
 
-const { data, error } = await query;
+  // =====================
+  // 実行
+  // =====================
 
- const postArea = document.getElementById("posts");
-postArea.innerHTML = "";
+  const { data, error } = await query;
+  const { count } = await countQuery.select("*", { count: "exact", head: true });
 
-let html = "";
+  document.getElementById("loading").style.display = "none";
 
+  if(error){
+    console.error(error);
+    alert("エラー：" + error.message);
+    return;
+  }
+
+
+  // =====================
+  // 表示
+  // =====================
+
+  const postArea = document.getElementById("posts");
+  postArea.innerHTML = "";
+
+  let html = "";
 data.forEach(post => {
-
-html += `
+  html += `
 <div class="team-card"> 
   <table class="team-table-top">
    <tr>
@@ -183,49 +290,95 @@ ${post.team_name}
     </tr>
   </table>
 
-  <div class="horizontal-scroll-wrapper">
-    <div class="info-item"><strong>活動場所</strong><br>${post.location}</div>
-    <div class="info-item"><strong>活動時間</strong><br>${post.time}</div>
-    <div class="info-item"><strong>実績</strong><br>${post.achievements}</div>
-   <div class="info-item"><strong>チーム人数</strong><br>${post.members}人</div>
-    <div class="info-item"><strong>対象</strong><br>${post.target}</div>
-    <div class="info-item"><strong>競技名</strong><br>${post.sport}</div>
-    <div class="info-item"><strong>料金</strong><br>${post.fee}</div>
-    <div class="info-item"><strong>連絡先</strong><br>${post.contact}</div>
-    <div class="info-item"><strong>SNS</strong><br>
-      <a href="${post.sns}" target="_blank" rel="noopener noreferrer">リンク</a>
-    </div>
+ <div class="horizontal-scroll-wrapper">
+  <div class="info-item"><strong>競技名</strong><br>${post.sport}</div>
+  <div class="info-item"><strong>活動場所</strong><br>${post.location}</div>
+  <div class="info-item"><strong>活動時間</strong><br>${post.time}</div>
+  <div class="info-item"><strong>実績</strong><br>${post.achievements}</div>
+  <div class="info-item"><strong>チーム人数</strong><br>${post.members}人</div>
+  <div class="info-item"><strong>対象</strong><br>${post.target}</div>
+  <div class="info-item"><strong>料金</strong><br>${post.fee}円</div>
+
+  <div class="info-item"><strong>入会金</strong><br>
+    ${post.entry_fee > 0 ? `あり（${post.entry_fee}円）` : "なし"}
   </div>
 
+  <div class="info-item"><strong>連絡先</strong><br>${post.contact}</div>
+
+  <div class="info-item"><strong>SNS</strong><br>
+    ${post.sns ? `<a href="${post.sns}" target="_blank">リンク</a>` : "なし"}
+  </div>
+ </div>
 </div>
 `;
-
 });
 
-postArea.innerHTML = html;
+  postArea.innerHTML = html;
+
+  // 🔥 ページネーション更新
+  renderPagination(count);
 }
+
+
+
+
+
+
+
+
 
 // フィルタリング用関数
-function filterRegion() {
+let currentRegion = "";
+function filterRegion(){
+  currentPage = 0;
   const region = document.getElementById("regionFilter").value;
-   const activeSportBtn = document.querySelector(".sport-menu button.active"); 
-   const sport = activeSportBtn ? activeSportBtn.textContent : "";
-  loadPosts(sport, region);
+  const keyword = document.getElementById("keyword").value;
+
+  loadPosts("", region, keyword);
+}
+function filterByFee(){
+  currentPage = 0;
+  const minFee = document.getElementById("minFee").value;
+  const maxFee = document.getElementById("maxFee").value;
+
+  const keyword = document.getElementById("keyword").value;
+  const activeSportBtn = document.querySelector(".sport-menu button.active"); 
+  const sport = activeSportBtn ? activeSportBtn.textContent : "";
+
+  loadPosts(sport, currentRegion, keyword, minFee, maxFee);
 }
 
+function filterRegionBtn(event, region){
+  currentPage = 0;
+  currentRegion = region;
+
+  const buttons = document.querySelectorAll(".region-menu button");
+  buttons.forEach(btn => btn.classList.remove("active"));
+
+  event.target.classList.add("active");
+
+  const keyword = document.getElementById("keyword").value;
+  const activeSportBtn = document.querySelector(".sport-menu button.active"); 
+  const sport = activeSportBtn ? activeSportBtn.textContent : "";
+
+  loadPosts(sport, region, keyword);
+}
   
 function searchKeyword(){
+  currentPage = 0;
+  const keyword = document.getElementById("keyword").value;
 
-const keyword = document.getElementById("keyword").value;
-const region = document.getElementById("regionFilter").value;
+  const activeSportBtn = document.querySelector(".sport-menu button.active"); 
+  const sport = activeSportBtn ? activeSportBtn.textContent : "";
 
-loadPosts("", region, keyword);
-
+  loadPosts(sport, currentRegion, keyword);
 }
 
 function filterSport(event, sport) {
-  const region = document.getElementById("regionFilter").value;
-  loadPosts(sport, region);
+  currentPage = 0;
+  const keyword = document.getElementById("keyword").value;
+
+  loadPosts(sport, currentRegion, keyword);
 
   const buttons = document.querySelectorAll(".sport-menu button");
   buttons.forEach(btn => btn.classList.remove("active"));
@@ -235,15 +388,48 @@ function filterSport(event, sport) {
 let currentSort = "new";
 
 function changeSort(){
+  currentPage = 0;
 
 const sort = document.getElementById("sortSelect").value;
 currentSort = sort;
 loadPosts();
 
 }
+function resetFilters(){
+  currentPage = 0;
+document.getElementById("keyword").value = "";
+  document.getElementById("regionFilter").value = "";
+  document.getElementById("minFee").value = "";
+  document.getElementById("maxFee").value = "";
+
+  currentRegion = "";
+
+  // スポーツリセット
+  document.querySelectorAll(".sport-menu button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  // 「すべて」をactiveにする
+  document.querySelector(".sport-menu button").classList.add("active");
+
+  // 並び替えリセット
+  currentSort = "new";
+  document.getElementById("sortSelect").value = "new";
+
+  // 完全リセットして再読み込み
+  loadPosts("", "", "", "", "");
+}
+
 
 // 初期表示
-loadPosts();
+loadPosts(
+  document.querySelector(".sport-menu button.active")?.textContent || "",
+  currentRegion,
+  document.getElementById("keyword").value,
+  document.getElementById("minFee").value,
+  document.getElementById("maxFee").value
+);
+
 
 </script>
 

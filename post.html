@@ -25,14 +25,18 @@
   <small>例：東京都千代田区皇居</small>
 
   <label>活動時間<span class="mast">[必須]</span></label>
- <textarea id="time" required></textarea>
-  <small>
-    例</small>
-    <ul>
-      <li>月曜日 10:00-12:00</li>
-      <li>水曜日 14:00-16:00</li>
-      <li>日曜日 15:00-17:00</li>
-    </ul>
+
+<div class="day-time">
+  <label>月 <input type="time" id="monStart"> 〜 <input type="time" id="monEnd"></label><br>
+  <label>火 <input type="time" id="tueStart"> 〜 <input type="time" id="tueEnd"></label><br>
+  <label>水 <input type="time" id="wedStart"> 〜 <input type="time" id="wedEnd"></label><br>
+  <label>木 <input type="time" id="thuStart"> 〜 <input type="time" id="thuEnd"></label><br>
+  <label>金 <input type="time" id="friStart"> 〜 <input type="time" id="friEnd"></label><br>
+  <label>土 <input type="time" id="satStart"> 〜 <input type="time" id="satEnd"></label><br>
+  <label>日 <input type="time" id="sunStart"> 〜 <input type="time" id="sunEnd"></label>
+</div>
+
+<small>活動する曜日だけ時間を入力してください</small>
   
 
   <label>実績</label>
@@ -41,8 +45,7 @@
 
   <label>PR<span class="mast">[必須]</span></label>
   <textarea id="pr" required></textarea>
-  <small>例：〇〇県〇市で活動しているチームAです。普段は子供たちに競技の楽しさを伝えることを目的に活動しています。
-初心者も大歓迎なので、興味のある方はぜひご連絡ください！</small>
+  <small>例：〇〇県〇市で活動していることは必ず文頭に書いてください。</small>
   
 
   <label>連絡先<span class="mast">[必須]</span></label>
@@ -52,14 +55,20 @@
   <label>
   チーム人数
   <span class="mast">[必須]</span></label>
-  <input type="text" id="members" required>
-    <small>例：10/30 *数字のみの入力でお願いいたします。</small>
+  <input type="number" id="members" required>
+    <small>半角数字のみの入力でお願いいたします。</small>
    
     <label>対象<span class="mast">[必須]</span></label>
-    <input type="text" id="target" required>
-    <small>例：小学生、中学生</small>
+    <select type="text" id="target" required>
+      <option value="">対象選択</option>
+      <option value="小学生">小学生</option>
+      <option value="中学生">中学生</option>
+      <option value="高校生">高校生</option>
+      <option value="だれでも">だれでも</option>
+    </select><br>
 
-   <label>競技名<span class="mast">[必須]</span></label><br>
+
+   <label>競技名<span class="mast">[必須]</span></label>
     <select id="sport" required>
 <option value="">スポーツ選択</option>
 <option value="サッカー">サッカー</option>
@@ -72,9 +81,30 @@
 <option value="その他">その他</option>
 
 </select><br>
-    <label>料金<span class="mast">[必須]</span></label>
-    <input type="text" id="fee" required>
-    <small>例：無料、月額4000円</small>
+   
+
+<label>月額料金<span class="mast">[必須]</span></label>
+<input type="number" id="fee" required>
+<small>正確な月額料金を入力して下さい（半角数字のみ）</small><br>
+
+<label>入会金<span class="mast">[必須]</span></label>
+
+<select id="hasEntryFee" onchange="toggleEntryFee()" required>
+  <option value="">選択してください</option>
+  <option value="あり">あり</option>
+  <option value="なし">なし</option>
+</select><br>
+
+
+<div id="entryFeeBox" style="display:none;">
+  <label>入会金の金額</label>
+  <input type="number" id="entryFee">
+  <small>例：5000（半角数字）</small>
+</div>
+
+
+
+         
       
     <label>SNS</label>
      <input type="text" id="sns" >
@@ -95,6 +125,16 @@ const supabaseClient = createClient(
 "https://tdfnajalmkfetndtsivo.supabase.co",
 "sb_publishable_6CpkprXrX-rd7F1Yx6O21g_krBbL5-T"
 );
+function toggleEntryFee(){
+  const select = document.getElementById("hasEntryFee").value;
+  const box = document.getElementById("entryFeeBox");
+
+  if(select === "あり"){
+    box.style.display = "block";
+  }else{
+    box.style.display = "none";
+  }
+}
 
 async function addPost(){
 
@@ -107,19 +147,88 @@ return;
 
 const teamName = document.getElementById("teamName").value;
 const location = document.getElementById("location").value;
-const time = document.getElementById("time").value;
+function getDayTime(day, startId, endId){
+  const start = document.getElementById(startId).value;
+  const end = document.getElementById(endId).value;
+
+  if(start && end){
+    return `${day} ${start}〜${end}`;
+  }
+  return null;
+}
+
+let times = [];
+
+const daysData = [
+  ["月","monStart","monEnd"],
+  ["火","tueStart","tueEnd"],
+  ["水","wedStart","wedEnd"],
+  ["木","thuStart","thuEnd"],
+  ["金","friStart","friEnd"],
+  ["土","satStart","satEnd"],
+  ["日","sunStart","sunEnd"]
+];
+
+daysData.forEach(d => {
+  const result = getDayTime(d[0], d[1], d[2]);
+  if(result){
+    times.push(result);
+  }
+});
+
+if(times.length === 0){
+  alert("活動時間を1つ以上入力してください");
+  return;
+}
+const time = times.join("\n");
 const achievements = document.getElementById("achievements").value;
 const pr = document.getElementById("pr").value;
 
 const file = document.getElementById("image").files[0];
-const contact = document.getElementById("contact").value;
-const members = document.getElementById("members").value;
-const target = document.getElementById("target").value;
-const sport = document.getElementById("sport").value;
-const fee = document.getElementById("fee").value;
+const contact = document.getElementById("contact").value || null;
+const members = document.getElementById("members").value || null;
+const target = document.getElementById("target").value || null;
+const sport = document.getElementById("sport").value || null;
+const fee = Number(document.getElementById("fee").value || 0);
+const hasEntryFee = document.getElementById("hasEntryFee").value || null;
+const entryFee = hasEntryFee === "あり"
+  ? Number(document.getElementById("entryFee").value || 0)
+  : 0;
+const monStart = document.getElementById("monStart").value || null;
+const monEnd = document.getElementById("monEnd").value || null;
+const tueStart = document.getElementById("tueStart").value || null;
+const tueEnd = document.getElementById("tueEnd").value || null;
+const wedStart = document.getElementById("wedStart").value || null;
+const wedEnd = document.getElementById("wedEnd").value || null;
+const thuStart = document.getElementById("thuStart").value || null;
+const thuEnd = document.getElementById("thuEnd").value || null;
+const friStart = document.getElementById("friStart").value || null;
+const friEnd = document.getElementById("friEnd").value || null;
+const satStart = document.getElementById("satStart").value || null;
+const satEnd = document.getElementById("satEnd").value || null;
+const sunStart = document.getElementById("sunStart").value || null;
+const sunEnd = document.getElementById("sunEnd").value || null;
+
+
+let fee_range = "";
+
+if(fee == 0){
+  fee_range = "0";
+}else if(fee <= 1000){
+  fee_range = "1000";
+}else if(fee <= 2000){
+  fee_range = "2000";
+}else if(fee <= 3000){
+  fee_range = "3000";
+}else if(fee <= 4000){
+  fee_range = "4000";
+}else{
+  fee_range = "5000";
+}
 const sns = document.getElementById("sns").value;
 
 let imageUrl = "";
+
 
 if(file){
 
@@ -153,6 +262,23 @@ members: members,
 target: target,
 sport: sport,
 fee: fee,
+entryFee: hasEntryFee === "あり" ? entryFee : 0, 
+ monStart: monStart,
+  monEnd: monEnd,
+  tueStart: tueStart,
+  tueEnd: tueEnd,
+  wedStart: wedStart,
+  wedEnd: wedEnd,
+  thuStart: thuStart,
+  thuEnd: thuEnd,
+  friStart: friStart,
+  friEnd: friEnd,
+  satStart: satStart,
+  satEnd: satEnd,
+  sunStart: sunStart,
+  sunEnd: sunEnd,
+
+
 sns: sns
 }]);
 
