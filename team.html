@@ -72,13 +72,12 @@ team.innerHTML = `
 <p><b>連絡先</b><br>${data.contact}</p>
 
 <p><b>SNS</b><br><a href="${data.sns}" target="_blank">リンク</a></p>
-<p><b>入会金</b><br>${data.has_entry_fee === "あり" ? `あり（${data.entry_fee}円）` : "なし"}</p>
+<p><b>入会金</b><br>${data.hasEntryFee === "あり" ? `あり（${data.entryFee}円）` : "なし"}</p>
 
 
 `;
 
 }
-
 loadTeam();
 
 </script>
