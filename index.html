@@ -213,14 +213,14 @@ async function loadPosts(sport = "", region = "", keyword = "", minFee = "", max
   }
 
   if(minFee !== ""){
-    query = query.gte("fee", minFee);
-    countQuery = countQuery.gte("fee", minFee);
-  }
+  query = query.gte("fee", Number(minFee));
+  countQuery = countQuery.gte("fee", Number(minFee));
+}
 
-  if(maxFee !== ""){
-    query = query.lte("fee", maxFee);
-    countQuery = countQuery.lte("fee", maxFee);
-  }
+if(maxFee !== ""){
+  query = query.lte("fee", Number(maxFee));
+  countQuery = countQuery.lte("fee", Number(maxFee));
+}
 
 
   // =====================
@@ -253,7 +253,7 @@ async function loadPosts(sport = "", region = "", keyword = "", minFee = "", max
   // =====================
 
   const { data, error } = await query;
-  const { count } = await countQuery.select("*", { count: "exact", head: true });
+ const { count } = await countQuery;
 
   document.getElementById("loading").style.display = "none";
 
