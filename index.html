@@ -302,7 +302,9 @@ ${post.team_name}
  
 
   <div class="info-item"><strong>入会金</strong><br>
-    ${post.entry_fee > 0 ? `あり（${post.entry_fee}円）` : "なし"}
+    ${Number(post.entryFee) > 0 
+  ? `あり（${Number(post.entryFee)}円）` 
+  : "なし"}
   </div>
 
   <div class="info-item"><strong>連絡先</strong><br>${post.contact}</div>
