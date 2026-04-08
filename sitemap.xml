@@ -2,11 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
-    <loc>https://sportsclub-bulletinboard0213.github.io/Athlink/</loc>
+    <loc>https://sports-bbs.github.io/Club-Link/</loc>
   </url>
 
   <url>
-    <loc>https://sportsclub-bulletinboard0213.github.io/Athlink/post.html</loc>
+    <loc>https://sports-bbs.github.io/Club-Link/post.html</loc>
+  </url>
+
+  <url>
+    <loc>https://sports-bbs.github.io/Club-Link/team.html</loc>
   </url>
 
 </urlset>
