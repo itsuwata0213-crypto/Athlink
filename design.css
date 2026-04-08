@@ -1,7 +1,7 @@
 /* --- 基本設定 --- */
 body {
   font-family: 'Poppins', sans-serif;
-  background: #f2f2f2;
+  background: #f7f9fb;
   margin: 0;
 }
 
@@ -53,7 +53,11 @@ body {
 }
 
 .title-h1 {
- font-size: 40px;
+
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: 1px;
+
   color: white;
   margin-top: 70px;      /* ロゴと被らないように少し下げる */
   position: relative;
@@ -65,48 +69,58 @@ body {
   margin-top: 0px;
   position: relative;
   z-index: 10;
+  opacity: 0.9;
 }
 
 /* --- 投稿ボタン（固定） --- */
-.title-button {
+.title-button { font-size: 16px;
+   position: fixed;
+    top: 20px; /* 位置を調整 */
+     right: 100px; background-color: #4CAF50;
+      color: white; padding: 10px 20px; border: none;
+       border-radius: 5px; 
+       cursor: pointer;
+        z-index: 9999; }
+
+.keyword-menu input {
+  width: 500px;
+  max-width: 80%;
+  padding: 12px 16px;
   font-size: 16px;
-  position: fixed;
-  top: 20px; /* 位置を調整 */
-  right: 100px;
-  background-color: #4CAF50;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  transition: 0.2s;
+}
+
+.keyword-menu input:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+.title-button,
+.keyword-menu button,
+.pagination button {
+  background: linear-gradient(135deg, #4CAF50, #2e7d32);
   color: white;
-  padding: 10px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
+  transition: all 0.25s ease;
   cursor: pointer;
-  z-index: 9999;
-}
-.keyword-menu input{
-
-width:500px;   /* 横幅 */
-max-width:80%;
-padding:12px 16px;
-font-size:16px;
-border-radius:8px;
-border:2px solid #ddd;
-
 }
 
-.keyword-menu button{
-
-padding:12px 20px;
-font-size:16px;
-border:none;
-border-radius:8px;
-background:#333;
-color:white;
-cursor:pointer;
-
+.title-button:hover,
+.keyword-menu button:hover,
+.pagination button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-.keyword-menu button:hover{
-background:#555;
+.pagination button.active {
+  background: #222;
 }
+
+
+
 
 
 
@@ -157,18 +171,24 @@ background:#555;
 .team-card {
   background: white;
   max-width: 900px;
-  margin: 20px auto;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border-radius: 8px;
+  margin: 25px auto;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.12);
 }
 
 .team-title {
-  font-size: 24px;
-  font-weight: bold;
-  padding: 15px;
-  background: #f5f5f5;
-  color: #333;
+  font-size: 26px;
+  font-weight: 600;
+  padding: 18px;
+  background: #f8f8f8;
+  color: #222;
 }
 
 .team-table-top {
@@ -179,13 +199,19 @@ background:#555;
 .team-img-cell { width: 280px; padding: 20px; }
 .team-info-cell { padding: 20px; vertical-align: top; color: #444; }
 
+
 .team-img {
   width: 100%;
   max-width: 250px;
   height: 180px;
   object-fit: cover;
-  border-radius: 5px;
-  display: block;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.team-img:hover {
+  transform: scale(1.03);
+  opacity: 0.9;
 }
 
 /* --- 横スクロール詳細エリア --- */
@@ -203,11 +229,16 @@ background:#555;
 .info-item {
   flex: 0 0 auto;
   min-width: 140px;
-  background: white;
-  padding: 10px;
-  border-radius: 5px;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
   border: 1px solid #eee;
   font-size: 14px;
+  transition: 0.2s;
+}
+
+.info-item:hover {
+  background: #f5f5f5;
 }
 
 .info-item strong {
