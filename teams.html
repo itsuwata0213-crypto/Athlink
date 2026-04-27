@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>チーム一覧 | ClubLink</title>
+
+  <meta name="description" content="スポーツクラブ・チーム一覧ページです。サッカー・野球・バスケなど様々なチームを掲載しています。">
+
+  <link rel="canonical" href="https://sports-bbs.github.io/Club-Link/teams.html">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    .team {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>チーム一覧</h1>
+
+<p>全国のスポーツクラブ・チームを一覧で紹介しています。</p>
+
+<div id="teamList">読み込み中...</div>
+
+<script>
+const { createClient } = supabase;
+
+const client = createClient(
+  "https://tdfnajalmkfetndtsivo.supabase.co",
+  "sb_publishable_6CpkprXrX-rd7F1Yx6O21g_krBbL5-T"
+);
+
+async function loadTeams(){
+
+  const { data, error } = await client
+    .from("teams")
+   .select("id, team_name, sport, location")
+    .eq("approved", true)
+    .order("id", { ascending: false });
+
+  const container = document.getElementById("teamList");
+
+  if(error){
+    container.innerHTML = "読み込み失敗";
+    return;
+  }
+
+ let html = "";
+
+data.forEach(team => {
+  html += `
+    <div class="team">
+      <a href="team.html?id=${team.id}">
+        <strong>${team.team_name}</strong>
+      </a><br>
+
+      <span>競技：${team.sport}</span><br>
+      <span>場所：${team.location}</span>
+    </div>
+    <hr>
+  `;
+});
+
+  container.innerHTML = html;
+}
+
+loadTeams();
+</script>
+
+</body>
+</html>

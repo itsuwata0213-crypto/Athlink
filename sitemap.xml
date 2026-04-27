@@ -10,7 +10,14 @@
   </url>
 
   <url>
-    <loc>https://sports-bbs.github.io/Club-Link/team.html</loc>
-  </url>
+  <loc>https://sports-bbs.github.io/Club-Link/team.html?id=26</loc>
+</url>
+
+ <url>
+  <loc>https://sports-bbs.github.io/Club-Link/team.html?id=27</loc>
+</url>
+ <url>
+  <loc>https://sports-bbs.github.io/Club-Link/team.html?id=28</loc>
+</url>
 
 </urlset>

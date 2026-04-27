@@ -29,7 +29,7 @@
 
 <a href="post.html" class="title-button" target="_blank">投稿する</a>
 <a href="post.html">投稿ページ</a>
-<a href="team.html">チーム一覧</a>
+<a href="teams.html">チーム一覧</a>
 <div class="sport-menu">
 
 <button onclick="filterSport(event,'')">すべて</button>
@@ -273,24 +273,28 @@ if(maxFee !== ""){
   const postArea = document.getElementById("posts");
   postArea.innerHTML = "";
 
-  let html = "";
+let html = "";
 data.forEach(post => {
   html += `
-<div class="team-card"> 
-  <table class="team-table-top">
-   <tr>
-<th colspan="2" class="team-title">
-<a href="team.html?id=${post.id}">
-${post.team_name}
-</a>
-</th>
-</tr>
-      <td class="team-img-cell">
-        <img src="${post.image_url}" class="team-img" onclick="openModal('${post.image_url}')">
-      </td>
-      <td class="team-info-cell">${post.pr}</td>
-    </tr>
-  </table>
+  <div class="team-card" onclick="location.href='team.html?id=${post.id}'">
+    
+    <table>
+      <tr>
+        <th colspan="2">${post.team_name}</th>
+      </tr>
+      <tr>
+        <td class="team-img-cell">
+          <img src="${post.image_url}" class="team-img"
+            onclick="event.stopPropagation(); openModal('${post.image_url}')">
+        </td>
+        <td class="team-info-cell">
+          ${post.pr}
+        </td>
+      </tr>
+    </table>
+  
+  
+   
 
  <div class="horizontal-scroll-wrapper">
   <div class="info-item"><strong>競技名</strong><br>${post.sport}</div>
