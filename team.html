@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>チーム紹介 | ClubLink</title>
+<title>スポーツクラブ・チーム紹介（野球、陸上、サッカー） / ClubLink / 東京、千葉、埼玉、神奈川など全国各地から募集中！</title>
 
 <link rel="stylesheet" href="team.css">
 
@@ -34,17 +34,29 @@ const id = params.get("id");
 async function loadTeam(){
 
 const { data, error } = await client
-.from("teams")
-.select("*")
-.eq("id", id)
-.single();
+  .from("teams")
+  .select("*")
+  .eq("id", Number(id))
+  .maybeSingle();
 
-if(error){
-console.error(error);
-return;
+console.log("data:", data);
+console.log("error:", error);
+if (error) {
+  document.getElementById("team").innerHTML = "データの取得に失敗しました";
+  return;
+}
+if (!data) {
+  document.getElementById("team").innerHTML = "チームが見つかりません";
+  return;
 }
 
+
 const team = document.getElementById("team");
+console.log("id:", id);
+
+
+
+
 
 team.innerHTML = `
 
